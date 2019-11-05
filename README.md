@@ -8,14 +8,31 @@ This stack is set to be utilized as a DaemonSet, allowing the collection of logs
 This was tested only on Minikube, however I believe that this should work on any k8s cluster.
 Also important to note is that the Persistent Volume option can be any choice that works with your environment.
 
+# Install
 Prerequisites: A functional Kubernetes cluster or Minikube cluster
+(Optional: Ansible)
 
-Run either the BASH (init_env.sh) or Ansible script (playbook.yml).
+1) Run either the shell script './init_env.sh' 
 
-Once setup is completed then run port_forward.sh to port forward your Kibana to localhost:5601 OR run
-minikube service list then the IP associated with: kube-logging         | kibana                    | http://*ip*
+OR
 
+2) Run 'ansible-playbook playbook.yml' (-v or -vvvv for verbosity levels).
+
+# Running
+1a) Once setup is completed then run port_forward.sh to port forward your Kibana to localhost:5601 
 From there, just open up your favorite web-browser to http://localhost:5601.
+
+OR:
+
+1b) Run 'minikube service list' then grab the IP and port associated with the service in namespace kube-logging: kibana | http://*ip*:*port*
+
+THEN:
+
+2) In the Kibana dashboard, Create Index Pattern 'logstash-*'.  
+   Then Select the Filter for @timestamp
+
+3) Done!
+
 
 Detailed instructions for setting up Kibana are in the below link, under 'Credits':
 
