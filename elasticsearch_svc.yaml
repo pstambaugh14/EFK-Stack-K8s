@@ -1,0 +1,21 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: elasticsearch
+  namespace: kube-logging
+  #Label is assigned as app:elasticsearch
+  labels:
+    app: elasticsearch
+spec:
+  #Spec: Selector: assigned to 'app: elasticsearch' to allow Service to select pods with label
+  selector:
+    app: elasticsearch
+  #When StatefulSet is applied to this Service,  the Service will return DNS A records that point to Elasticsearch Pods with the app: elasticsearch label.
+  #ClusterIP: None means that it is a headless service
+  clusterIP: None
+  #Ports designated for API and inter-node comms
+  ports:
+    - port: 9200
+      name: rest
+    - port: 9300
+      name: inter-node

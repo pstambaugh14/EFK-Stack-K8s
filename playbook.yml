@@ -1,0 +1,70 @@
+---
+- hosts: localhost
+  gather_facts: true
+  user: jenkins
+  connection: local
+
+  tasks:
+  - name: Create the EFK namespace
+    shell: kubectl apply -f kube-logging.yaml
+  - name: List all namespaces to validate
+    shell: kubectl get namespaces | grep -i kube-logging | awk '{ print $1 }'
+    register: nsvar
+  - name: Check to see if namespace was created
+    debug: msg="{{nsvar.stdout}}"
+  - name: Continue if namespace deployed correctly and then deploy ES Headless Service
+    shell: kubectl create -f elasticsearch_svc.yaml
+    when: nsvar.stdout == "kube-logging"
+    ignore_errors: True
+  - name: Validate that the Service was created
+    shell: kubectl get services --namespace=kube-logging
+    register: servar
+  - name: Check to see if service was created
+    debug: msg="{{servar.stdout}}"
+    #ignore_errors: True
+  - name: Continue if Service was successfully created then Create Persistent Volume
+    shell: kubectl apply -f elasticsearch_Volume.yaml
+    when: servar.stdout != "No resources found in kube-logging namespace."
+    ignore_errors: True
+  - name: Check to see if PV was created
+    shell: kubectl describe pv | awk '{ print $2 }' | grep log-pv-volume
+    register: pvvar
+  - name: Create Persistent Volume Claim if PV was successfully deployed
+    shell: kubectl apply -f elasticsearch_PVC.yaml
+    when: pvvar.stdout == "log-pv-volume"
+    ignore_errors: True
+  - name: Check to see if PVC was created
+    shell: kubectl describe pvc -n kube-logging | awk '{ print $2 }' | grep log-pv-claim
+    register: pvcvar
+  - name: Deploy StatefulSet, Containers, Environment Vars & InitContainers if PVC was successfully created
+    shell: kubectl create -f elasticsearch_statefulset.yaml
+    when: pvcvar.stdout == "log-pv-claim"
+    ignore_errors: True
+  - name: Check if previous deployment was successfull
+    shell: kubectl rollout status sts/es-cluster --namespace=kube-logging
+    register: finalvar
+  - name: Display success if successfully finished.
+    debug: msg="{{finalvar.stdout}}"
+    when: finalvar is succeeded
+        when: finalvar is succeeded
+  - name: ElasticSearch Deploy Successful
+    debug:
+      msg: ElasticSearch has been successfully deployed!
+  - name: Deploy Kibana Dashboard
+    shell: kubectl create -f kibana.yaml
+    ignore_errors: True
+  - name: Check to see if Kibana Dashboard was installed succesfully.
+    shell: kubectl rollout status deployment/kibana --namespace=kube-logging
+    register: kibanavar
+  - name: Display if Kibana deployment was successful
+    debug: msg="{{kibanavar.stdout}}"
+    when: kibanavar is succeeded
+  - name: Deploy Fluentd
+    shell: kubectl create -f fluentd.yaml
+  - name: Validate deployment of Fluentd
+    shell: kubectl rollout status daemonset/fluentd --namespace=kube-logging
+    register: fluentdvar
+    ignore_errors: True
+  - name: Validation Successful of Fluentd
+    debug: msg="{{fluentdvar.stdout}}"
+    when: fluentdvar is succeeded
