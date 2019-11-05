@@ -46,7 +46,6 @@
   - name: Display success if successfully finished.
     debug: msg="{{finalvar.stdout}}"
     when: finalvar is succeeded
-        when: finalvar is succeeded
   - name: ElasticSearch Deploy Successful
     debug:
       msg: ElasticSearch has been successfully deployed!
