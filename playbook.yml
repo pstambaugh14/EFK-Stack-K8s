@@ -49,15 +49,6 @@
   - name: ElasticSearch Deploy Successful
     debug:
       msg: ElasticSearch has been successfully deployed!
-  - name: Deploy Kibana Dashboard
-    shell: kubectl create -f kibana.yaml
-    ignore_errors: True
-  - name: Check to see if Kibana Dashboard was installed succesfully.
-    shell: kubectl rollout status deployment/kibana --namespace=kube-logging
-    register: kibanavar
-  - name: Display if Kibana deployment was successful
-    debug: msg="{{kibanavar.stdout}}"
-    when: kibanavar is succeeded
   - name: Deploy Fluentd
     shell: kubectl create -f fluentd.yaml
   - name: Validate deployment of Fluentd
@@ -67,3 +58,12 @@
   - name: Validation Successful of Fluentd
     debug: msg="{{fluentdvar.stdout}}"
     when: fluentdvar is succeeded
+  - name: Deploy Kibana Dashboard
+    shell: kubectl create -f kibana.yaml
+    ignore_errors: True
+  - name: Check to see if Kibana Dashboard was installed succesfully.
+    shell: kubectl rollout status deployment/kibana --namespace=kube-logging
+    register: kibanavar
+  - name: Display if Kibana deployment was successful
+    debug: msg="{{kibanavar.stdout}}"
+    when: kibanavar is succeeded
