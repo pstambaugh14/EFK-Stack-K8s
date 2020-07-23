@@ -49,3 +49,7 @@ Patrick Stambaugh
 # Fix History:
 1) Added Kibana and Fluentd to both the shell install script and Ansible install script.
 2) Fixed Kibana so it can also be accessed via its Service.
+
+# Goals/TODO:
+1) Add SIEM Security AuditBeat for security metrics.
+2) Add FileBeat to gather log data.
